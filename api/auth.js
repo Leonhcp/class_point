@@ -47,7 +47,7 @@ module.exports = app => {
         }
 
         if (req.body.remember !== true) {
-            payload.exp = now + (60 * 60 * 2)
+            payload.exp = now + (60 * 60 * 5)
         } else {
             payload.exp = now + (60 * 60 * 24 * 7)
         }

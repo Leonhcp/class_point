@@ -1,31 +1,31 @@
 module.exports = app => {
 
-	const {existsOrError} = app.utils.validator
+    const { existsOrError } = app.utils.validator
     const save = async (req, res) => {
 
         const courseFromReq = { ...req.body }
 
-        if(!req.user) res.send('Erro ao reconhecer id do usuário').status(403)
+        if (!req.user) res.send('Erro ao reconhecer id do usuário').status(403)
 
         let course = {
             title: courseFromReq.title,
             creator_id: req.user.id,
             price: courseFromReq.price,
             description: courseFromReq.description,
-						tumbnail_url: courseFromReq.tumbnail_url,
-						code: `${Math.floor(Date.now() - 1588000000000)}-${1000 + req.user.id}`
-						
+            tumbnail_url: courseFromReq.tumbnail_url,
+            code: `${Math.floor(Date.now() - 1588000000000)}-${1000 + req.user.id}`
+
         }
 
-        if (req.params.id){
-					try{
-						const isValid = await app.model.course.forge().where({"id": req.params.id, "creator_id": req.user.id})
-						course.id = req.params.id
-            }catch(e){
+        if (req.params.id) {
+            try {
+                const isValid = await app.model.course.forge().where({ "id": req.params.id, "creator_id": req.user.id })
+                course.id = req.params.id
+            } catch (e) {
                 console.log(e)
                 res.send("Tentativa de edição inválida tente editar um curso seu").status(403)
             }
-        } 
+        }
 
         try {
             if (!course.id) {
@@ -52,17 +52,42 @@ module.exports = app => {
             if (err === 1062) return res.status(400).send("E-mail já cadastrado.");
             return res.status(500).send();
         }
-		}
+    }
 
-		const getByUser = async (req, res) => {}
-		
-		const getMostSelled = async (req, res) => {}
+    const getByUser = async (req, res) => {
 
-		const getByDate = async (req, res) => {}
+    }
 
-		const getById = async (req, res) => {}
+    const getMostSelled = async (req, res) => {
 
-		const search = async (req, res) => {}
+    }
 
-    return{save, getByUser, getMostSelled, getByDate,  getById, search}
+    const getByDate = async (req, res) => {
+        try {
+            let courseFromDB = await app.db.knex('courses')
+						.select()
+						.orderBy('created_at', 'desc')
+            res.json(courseFromDB);
+        } catch (e) {
+            console.log(e);
+            return res.status(500).send();
+        }
+    }
+
+    const getById = async (req, res) => {
+        id = req.params.id;
+        try {
+            let courseFromDB = await app.model.course.forge({ "id": id }).fetch()
+            res.json(courseFromDB.toJSON());
+        } catch (e) {
+            console.log(e);
+            return res.status(500).send();
+        }
+    }
+
+    const search = async (req, res) => {
+
+    }
+
+    return { save, getByUser, getMostSelled, getByDate, getById, search }
 }

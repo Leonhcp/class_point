@@ -16,24 +16,24 @@ exports.up = function (knex) {
             table.string('title')
             table.float('price').unsigned()
             table.string('description')
-						table.string('tumbnail_url')
-						table.datetime('created_at').defaultTo(knex.fn.now())
-						table.string('code').unique()
+            table.string('tumbnail_url')
+            table.datetime('created_at').defaultTo(knex.fn.now())
+            table.string('code').unique()
 
             table.integer('creator_id').unsigned().notNullable()
             table.foreign('creator_id').references('id').inTable('users')
-				}),
-				
-				
-        knex.schema.createTable('videos', table => {
-					table.increments('id').primary()
-					table.string('title')
-					table.string('url')
-					table.datetime('created_at').defaultTo(knex.fn.now())
+        }),
 
-					table.integer('course_id').unsigned().notNullable()
-					table.foreign('course_id').references('id').inTable('courses')
-			}),
+
+        knex.schema.createTable('videos', table => {
+            table.increments('id').primary()
+            table.string('title')
+            table.string('url')
+            table.datetime('created_at').defaultTo(knex.fn.now())
+
+            table.integer('course_id').unsigned().notNullable()
+            table.foreign('course_id').references('id').inTable('courses')
+        }),
     ])
 
 };
@@ -41,8 +41,8 @@ exports.up = function (knex) {
 
 exports.down = function (knex) {
     return Promise.all([
-				knex.schema.dropTable('users'),
-				knex.schema.dropTable('courses'),
-				knex.schema.dropTable('videos')
+        knex.schema.dropTable('users'),
+        knex.schema.dropTable('courses'),
+        knex.schema.dropTable('videos')
     ])
 }
