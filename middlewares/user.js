@@ -12,7 +12,6 @@ module.exports = app => {
         const token = params.token(req);
         try {
             const payload = decode(token, params.authSecret);
-            console.log(payload)
             const userDB = await app.model.user.forge().where({ "id": payload.id }).fetch();
             req.user = userDB.toJSON();
             next();

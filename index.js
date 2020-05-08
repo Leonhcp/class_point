@@ -3,6 +3,9 @@ const consign = require('consign')
 const app = require('express')()
 const bodyParser = require('body-parser')
 const db = require('./config/db')
+const cors = require('cors')
+ 
+app.use(cors())
 
 app.use(bodyParser.json())
 

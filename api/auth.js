@@ -72,7 +72,8 @@ module.exports = app => {
             email: userFromReq.email,
             password: userFromReq.password,
             cpf: userFromReq.cpf,
-            address: userFromReq.address
+            address: userFromReq.address,
+            cep: userFromReq.cep
         }
 
         let confirmPassword = userFromReq.confirmPassword
@@ -87,7 +88,7 @@ module.exports = app => {
                 existsOrError(user.cpf, 'CPF não informado')
                 cpfValidator(user.cpf, 'CPF inválido')
                 existsOrError(user.password, 'Senha não informada')
-                existsOrError(user.password, 'Senha não informada')
+                existsOrError(user.cep, 'CEP não informada')
                 existsOrError(confirmPassword, 'Digite duas vezes a senha')
                 equalsOrError(user.password, confirmPassword, 'Senhas não conferem')
 
