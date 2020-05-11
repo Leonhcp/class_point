@@ -1,5 +1,5 @@
 module.exports = app => {
-  app.route('/me')
+  app.route('/profile')
     .get(app.middlewares.user.getUserFromHeader, app.api.user.get)
 
 }

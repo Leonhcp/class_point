@@ -5,7 +5,7 @@ module.exports = app => {
     const get = async (req, res) => {
       try {
         const id = req.user.id
-        let users = await app.model.user.forge().where({"id": id}).fetch({ columns: user_columns })
+        let users = await app.model.user.forge().where({"id": id}).fetch()
         res.json(users.toJSON());
       } catch (e) {
         console.log(e);

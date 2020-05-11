@@ -43,14 +43,10 @@ module.exports = app => {
             name: user.name,
             email: user.email,
             cpf: user.cpf,
-            iat: now
+            iat: now,
+            exp: now + (60 * 60 * 24 * 7)
         }
-
-        if (req.body.remember !== true) {
-            payload.exp = now + (60 * 60 * 5)
-        } else {
-            payload.exp = now + (60 * 60 * 24 * 7)
-        }
+    
 
         try {
             return res.json({
