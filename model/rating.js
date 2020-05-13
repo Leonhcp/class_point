@@ -1,13 +1,13 @@
 module.exports = app => {
-    const timeSchema = new app.db.mongoose.Schema({
+    const ratingSchema = new app.db.mongoose.Schema({
         userId: Number,
         courseId: Number,
         createdAt: {
             type: Date,
             default: Date.now
         },
-        endedAt: Date,
-        });
+        rate: Number
+    });
 
-    return app.db.mongoose.model('Time', timeSchema);
+    return app.db.mongoose.model('Rating', ratingSchema);
 }
