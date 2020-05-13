@@ -56,19 +56,19 @@ module.exports = app => {
 
 	const getByUser = async (req, res) => {
 		let { id } = req.user
-		try{
+		try {
 			let final = []
 			let courseFromMongoDB = await app.model.purchase
-			.where({ userId: id })
-			.distinct('coursesId')
+				.where({ userId: id })
+				.distinct('coursesId')
 
 			for (i = 0; i < courseFromMongoDB.length; i++) {
 				let courseFromSQL = await app.db.knex('courses').select().where({ id: courseFromMongoDB[i] })
 				final.push(courseFromSQL[0])
 			}
 
-			res.send(final).status(200)			
-		}catch(e){
+			res.send(final).status(200)
+		} catch (e) {
 			res.send().status(500)
 		}
 
@@ -135,10 +135,22 @@ module.exports = app => {
 	}
 
 	const getById = async (req, res) => {
-		id = req.params.id;
+		let id = req.params.id;
 		try {
-			let courseFromDB = await app.model.course.forge({ "id": id }).fetch()
-			res.json(courseFromDB.toJSON());
+			let usersFromMongoDB = await app.model.purchase.where({ coursesId: id }).distinct('userId')
+
+			let courseFromSQLDB = await app.model.course.forge({ "id": id }).fetch()
+
+			let course = {
+				profile: courseFromSQLDB,
+				students: []
+			}
+			for (i = 0; i < usersFromMongoDB; i++) {
+				let user = await app.db.knex('users').where({ 'id': usersFromMongoDB[i]}).select('id', 'name')
+				course.students.push(user[0])
+			}
+
+			res.send(course);
 		} catch (e) {
 			console.log(e);
 			return res.status(500).send();

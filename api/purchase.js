@@ -4,15 +4,28 @@ module.exports = app => {
 		let purchaseFromReq = { ...req.body }
 
 
-		let purchase = {
-			coursesId: purchaseFromReq.coursesId,
-			status: 'waiting...',
-			invoice: `${Date.now()}-invoice-${req.user.id}`
-		}
-
-		purchase.userId = req.user.id
-
 		try {
+			const purchase = {
+				coursesId: purchaseFromReq.coursesId,
+				status: 'waiting...',
+				invoice: `${Date.now()}-invoice-${req.user.id}`
+			}
+
+			purchase.userId = req.user.id
+
+			let courseFromMongoDB = await app.model.purchase
+				.where({ userId: purchase.userId })
+				.distinct('coursesId')
+
+			for (i = 0; i < purchaseFromReq.coursesId.length; i++) {
+				let validator = courseFromMongoDB.indexOf(purchaseFromReq.coursesId[i])
+				console.log(validator)
+				if (validator !== -1) {
+					res.send('Você está tentando comprar um curso que ja esta comprado ou em espera').status(400)
+					purchase = [0]
+				}
+			}
+
 			var arrayPrices = []
 
 			for (i = 0; i < purchase.coursesId.length; i++) {
@@ -20,7 +33,7 @@ module.exports = app => {
 				arrayPrices.push(forPrice.price)
 			}
 
-			let userPrice = arrayPrices.reduce(function (acc, cur) {
+			let userPrice = arrayPrices.reduce((acc, cur) => {
 				acc += cur;
 				if (acc < 0) { return 0 }
 				else { return acc }
@@ -29,17 +42,13 @@ module.exports = app => {
 			purchase.price = userPrice
 
 			console.log(purchase)
-		} catch (msg) {
-			console.log(msg);
-			return res.status(500).send(msg)
-		}
 
-		try {
 			await app.model.purchase.create(purchase)
 			return res.status(204).send()
-		} catch (msg) {
-			console.log(msg);
-			return res.status(500).send(msg)
+
+		} catch (e) {
+			console.log(e)
+			res.send().status(500)
 		}
 	}
 
