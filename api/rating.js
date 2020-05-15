@@ -67,7 +67,7 @@ module.exports = app => {
 
 			for (i = 0; i < rateSum.length; i++) {
 				let courseFromSQL = await app.model.course.forge().where({ id: rateSum[i]._id }).fetch()
-				let manyRates = await app.model.rating.where({ courseId: rateSum[i]._id})
+				let manyRates = await app.model.rating.where({ courseId: rateSum[i]._id })
 
 				courseFromSQL = courseFromSQL.toJSON()
 
@@ -79,7 +79,7 @@ module.exports = app => {
 				manyRates = manyRates.length
 
 				courses.rate = rateSum[i].total / manyRates
-				
+
 				final.push(courses)
 			}
 
@@ -103,7 +103,7 @@ module.exports = app => {
 
 			for (i = 0; i < rateSum.length; i++) {
 				let courseFromSQL = await app.model.course.forge().where({ id: rateSum[i]._id }).fetch()
-				let manyRates = await app.model.rating.where({ courseId: rateSum[i]._id})
+				let manyRates = await app.model.rating.where({ courseId: rateSum[i]._id })
 
 				courseFromSQL = courseFromSQL.toJSON()
 
@@ -115,7 +115,7 @@ module.exports = app => {
 				manyRates = manyRates.length
 
 				courses.rate = rateSum[i].total / manyRates
-				
+
 				final.push(courses)
 			}
 
@@ -128,5 +128,103 @@ module.exports = app => {
 		}
 
 	}
-	return { create, getRateByCourse, bestRatedCourses, worstRatedCourses }
+
+	// retorno de datas semana/week , mês/month , ano/year
+
+	const compressArray = (original) => {
+
+		let compressed = [];
+		let copy = original.slice(0);
+
+		for (i = 0; i < original.length; i++) {
+
+			let myCount = 0;
+
+			for ( w = 0; w < copy.length; w++) {
+				if (original[i] === copy[w]) {
+					myCount++;
+					delete copy[w];
+				}
+			}
+
+			if (myCount > 0) {
+				const a = new Object();
+				a.y = myCount;
+				a.label = original[i];
+				compressed.push(a);
+			}
+		}
+
+		return compressed;
+	};
+
+	coursePurchasesByDate = async (req, res) => {
+
+		let courseId = req.params.id
+
+		let period
+
+		try {
+			switch (req.query.period) {
+				case "today":
+					period = 86400000
+					break;
+				case "week":
+					period = 604800000
+					break;
+				case "month":
+					period = 2629746000
+					break;
+				case "year":
+					period = 31556952000
+					break;
+				default: res.send('Entrada inválida de período').status(400)
+
+			}
+
+			let date = new Date - period
+
+			let purchaseFromDB = await app.model.purchase.find({ 
+				'coursesId': courseId, 
+				"createdAt": { 
+						"$gte": date
+				}
+		})
+
+		let finalArray = []
+
+		switch (period) {
+			case 86400000:
+				res.send(`Purchases today: ${purchaseFromDB.length}`).status(200)
+				break;
+			case 604800000:
+				for(i=0; i<purchaseFromDB.length; i++){
+					index = purchaseFromDB[i].createdAt.getDate()
+					finalArray.push(index)
+				}
+				break;
+			case 2629746000:
+				for(i=0; i<purchaseFromDB.length; i++){
+					index = purchaseFromDB[i].createdAt.getMonth() + 1
+					finalArray.push(index)
+				}
+				break;
+			case 31556952000:
+				for(i=0; i<purchaseFromDB.length; i++){
+					index = purchaseFromDB[i].createdAt.getFullYear()
+					finalArray.push(index)
+				}
+				break;
+			default: res.send('Entrada inválida de período').status(400)
+		}
+			console.log(finalArray)
+			res.send(compressArray(finalArray)).status(200)
+		} catch (e) {
+			console.log(e)
+			res.send().status(500)
+		}
+	}
+
+
+	return { create, getRateByCourse, bestRatedCourses, worstRatedCourses, coursePurchasesByDate }
 }
