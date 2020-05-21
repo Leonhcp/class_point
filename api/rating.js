@@ -131,94 +131,108 @@ module.exports = app => {
 
 	// retorno de datas semana/week , mês/month , ano/year
 
-	const compressArray = (original) => {
-
-		let compressed = [];
-		let copy = original.slice(0);
-
-		for (i = 0; i < original.length; i++) {
-
-			let myCount = 0;
-
-			for ( w = 0; w < copy.length; w++) {
-				if (original[i] === copy[w]) {
-					myCount++;
-					delete copy[w];
-				}
-			}
-
-			if (myCount > 0) {
-				const a = new Object();
-				a.y = myCount;
-				a.label = original[i];
-				compressed.push(a);
-			}
-		}
-
-		return compressed;
-	};
-
 	coursePurchasesByDate = async (req, res) => {
 
 		let courseId = req.params.id
 
-		let period
+		let data = []
+
+		let label = []
+
+		let date = new Date ()
+
+		let months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"]
 
 		try {
 			switch (req.query.period) {
+
 				case "today":
-					period = 86400000
+					datefirst = date.setDate(date.getDate() - 1)
+
+					let purchaseFromDB = await app.model.purchase.find({
+						'coursesId': courseId,
+						"createdAt": {
+							"$gte": date
+						}
+					})
+					res.send(`Purchases in 24h: ${purchaseFromDB.length}`).status(200)
 					break;
+
 				case "week":
-					period = 604800000
+
+					for (i = 1; i < 8; i++) {
+						datefirst = date - (86400000 * i)
+						datelast = date - (86400000 * (i + 1))
+
+						let purchaseFromDB = await app.model.purchase.where({'coursesId': courseId})
+						.gte('createdAt', datelast)
+						.lt('createdAt', datefirst)
+
+						if (purchaseFromDB === [] || purchaseFromDB < 1) {
+							purchaseFromDB = 0
+						} else {
+							purchaseFromDB = purchaseFromDB.length
+						}
+
+						data.push(purchaseFromDB)
+						label.push(datefirst.getDate())
+					}
 					break;
+
 				case "month":
-					period = 2629746000
+
+					for (i = 0; i < 30; i++) {
+						datefirst = date - (86400000 * i)
+						datelast = date - (86400000 * (i + 1))
+
+						let purchaseFromDB = await app.model.purchase.where({'coursesId': courseId})
+						.gte('createdAt', datelast)
+						.lt('createdAt', datefirst)
+
+						console.log(purchaseFromDB)
+
+						if (purchaseFromDB === [] || purchaseFromDB < 1) {
+							purchaseFromDB = 0
+						} else {
+							purchaseFromDB = purchaseFromDB.length
+						}
+
+						data.push(purchaseFromDB)
+						label.push(new Date(datefirst).getDate())
+					}
+
 					break;
+
 				case "year":
-					period = 31556952000
+
+					for (i = 0; i < 12; i++) {
+						datefirst = date - (2592000000 * i)
+						datelast = date - (2592000000 * (i + 1))
+
+						let purchaseFromDB = await app.model.purchase.where({'coursesId': courseId})
+						.gte('createdAt', datelast)
+						.lt('createdAt', datefirst)
+
+						console.log(new Date(datefirst), new Date(datelast))
+
+						if (purchaseFromDB === [] || purchaseFromDB < 1) {
+							purchaseFromDB = 0
+						} else {
+							purchaseFromDB = purchaseFromDB.length
+						}
+
+						data.push(purchaseFromDB)
+						label.push(months[new Date(datefirst).getMonth()])
+					}
+					
 					break;
-				default: res.send('Entrada inválida de período').status(400)
+
+				default: res.send('Entrada inválida de período 1').status(400)
 
 			}
+			let finalArray = [label.reverse(), data.reverse()]
+			res.send(finalArray).status(200)
 
-			let date = new Date - period
-
-			let purchaseFromDB = await app.model.purchase.find({ 
-				'coursesId': courseId, 
-				"createdAt": { 
-						"$gte": date
-				}
-		})
-
-		let finalArray = []
-
-		switch (period) {
-			case 86400000:
-				res.send(`Purchases today: ${purchaseFromDB.length}`).status(200)
-				break;
-			case 604800000:
-				for(i=0; i<purchaseFromDB.length; i++){
-					index = purchaseFromDB[i].createdAt.getDate()
-					finalArray.push(index)
-				}
-				break;
-			case 2629746000:
-				for(i=0; i<purchaseFromDB.length; i++){
-					index = purchaseFromDB[i].createdAt.getMonth() + 1
-					finalArray.push(index)
-				}
-				break;
-			case 31556952000:
-				for(i=0; i<purchaseFromDB.length; i++){
-					index = purchaseFromDB[i].createdAt.getFullYear()
-					finalArray.push(index)
-				}
-				break;
-			default: res.send('Entrada inválida de período').status(400)
-		}
-			console.log(finalArray)
-			res.send(compressArray(finalArray)).status(200)
 		} catch (e) {
 			console.log(e)
 			res.send().status(500)

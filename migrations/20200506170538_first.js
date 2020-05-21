@@ -31,8 +31,28 @@ exports.up = function (knex) {
             table.string('url')
             table.datetime('created_at').defaultTo(knex.fn.now())
 
+            table.integer('module_id').unsigned().notNullable()
+            table.foreign('module_id').references('id').inTable('modules')
+        }),
+
+        knex.schema.createTable('modules', table => {
+            table.increments('id').primary()
+            table.string('title')
+            table.datetime('created_at').defaultTo(knex.fn.now())
+
             table.integer('course_id').unsigned().notNullable()
             table.foreign('course_id').references('id').inTable('courses')
+        }),
+
+        knex.schema.createTable('contents', table => {
+            table.increments('id').primary()
+            table.string('title')
+            table.enu('type', ['video', 'link', 'document'])
+            table.string('document_url')
+            table.datetime('created_at').defaultTo(knex.fn.now())
+
+            table.integer('module_id').unsigned().notNullable()
+            table.foreign('module_id').references('id').inTable('modules')
         }),
     ])
 
@@ -43,6 +63,8 @@ exports.down = function (knex) {
     return Promise.all([
         knex.schema.dropTable('users'),
         knex.schema.dropTable('courses'),
-        knex.schema.dropTable('videos')
+        knex.schema.dropTable('videos'),
+        knex.schema.dropTable('contents'),
+        knex.schema.dropTable('modules')
     ])
 }

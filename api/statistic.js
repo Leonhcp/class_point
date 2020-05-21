@@ -80,5 +80,23 @@ module.exports = app => {
         }
     }
 
+    const laestRated = async (req, res) => {
+        try {
+            let many = await app.model.purchase.find()
+
+            many = many.length
+
+            let averagePrice = await app.model.purchase.aggregate([{ $match: {} },
+            { $group: { _id: null, total: { $sum: '$price' } } }])
+
+            averagePrice = `Preço médio de compra é: R$${averagePrice[0].total / many}`
+
+            res.send(averagePrice).status(200)
+        } catch (msg) {
+            console.log(msg);
+            return res.status(500).send(msg)
+        }
+    }
+
     return { getUsersWhoAccess, numberOfQuery, averagePurchase, averageTime }
 }
