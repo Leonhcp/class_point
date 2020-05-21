@@ -227,7 +227,7 @@ module.exports = app => {
 					
 					break;
 
-				default: res.send('Entrada inválida de período 1').status(400)
+				default: res.send('Entrada inválida de período').status(400)
 
 			}
 			let finalArray = [label.reverse(), data.reverse()]
